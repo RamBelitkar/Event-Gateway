@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* Button Styling */
+.toggle-button {
+  background: #fbca1f;
+  font-family: inherit;
+  padding: 0.6em 1.3em;
+  font-weight: 900;
+  font-size: 18px;
+  border: 3px solid black;
+  border-radius: 0.4em;
+  box-shadow: 0.1em 0.1em;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.toggle-button::before {
+  content: 'Start';
+}
+
+.toggle-button.toggled::before {
+  content: 'Stop';
+}
+
+.toggle-button:hover {
+  transform: translate(-0.05em, -0.05em);
+  box-shadow: 0.15em 0.15em;
+}
+
+.toggle-button:active {
+  transform: translate(0.05em, 0.05em);
+  box-shadow: 0.05em 0.05em;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* 10 columns for the table */
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  justify-content: center;
+  overflow-y: auto;
+  height: calc(100vh - 300px); /* Ensure it fits within the viewport */
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #07182E;
+  color: white;
+  font-size: 1.2em;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+  width: 100%; 
+  height: 70px; 
+  border: 2px solid green;  /* Debug style to ensure visibility */
+}
+
+.card.marked {
+  background: yellow;
+  color: black;
+}
+
+.reset-button {
+  background: #f54242;
+  font-family: inherit;
+  padding: 0.5em 1em;
+  font-weight: 700;
+  font-size: 16px;
+  border: 2px solid black;
+  border-radius: 0.4em;
+  box-shadow: 0.1em 0.1em;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s ease;
+}
+
+.reset-button:hover {
+  transform: translate(-0.05em, -0.05em);
+  box-shadow: 0.15em 0.15em;
+}
+
+.reset-button:active {
+  transform: translate(0.05em, 0.05em);
+  box-shadow: 0.05em 0.05em;
+}
+
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+.bin {
+  font-size: 3em;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Changed to flex-start to keep content below navbar */
+  height: 100%;
+  padding-top: 20px; /* Added padding to create space from the top */
+}
+
+.card-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  height: 70%;
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 768px) {
+  .card-container {
+    grid-template-columns: repeat(5, 1fr); /* 5 columns for mobile devices */
+  }
+
+  .card {
+    height: 50px; /* Adjust height for mobile */
+    font-size: 1em; /* Adjust font size for mobile */
+  }
+
+  .toggle-button, .reset-button {
+    padding: 0.5em 1em; /* Adjust padding for mobile */
+    font-size: 16px; /* Adjust font size for mobile */
+  }
+
+  .bin {
+    font-size: 2em; /* Adjust font size for mobile */
+  }
+}
+</style>
+
+<div class="content">
+    <h1 id="app" class="bin">Bingo</h1>
+    <button class="toggle-button" onclick="toggleBingo(this)"></button>
+    <div class="card-wrapper">
+        <div class="card-container">
+            <!-- Generate numbered cards from 1 to 100 -->
+            {% for number in numbers %}
+            <div class="card" id="card-{{ number }}">{{ number }}</div>
+            {% endfor %}
+        </div>
+        <button class="reset-button" onclick="resetCards()">Reset</button>
+    </div>
+</div>
+
+<script>
+    var socket;
+    var markedNumbers = new Set();
+
+    // Function to initialize or close WebSocket and toggle button state
+    function toggleBingo(button) {
+        if (button.classList.contains('toggled')) {
+            if (socket) {
+                socket.close();
+                socket = null;
+                button.classList.remove('toggled');
+            }
+        } else {
+            var wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            socket = new WebSocket(wsProtocol + window.location.host + "/ws/bingo/");
+
+            socket.onmessage = function(e) {
+                var data = JSON.parse(e.data);
+                var number = data.number;
+                var card = document.getElementById("card-" + number);
+                if (card) {
+                    card.classList.add("marked");
+                    markedNumbers.add(number);
+                }
+                document.getElementById("app").innerHTML = number;
+
+                // Check if all 100 numbers are marked
+                if (markedNumbers.size === 100) {
+                    document.getElementById("app").innerHTML = "Bingo!";
+                    socket.close();
+                    socket = null;
+                    button.classList.remove('toggled');
+                }
+            };
+
+            socket.onopen = function() {
+                console.log("WebSocket connection established.");
+                button.classList.add('toggled');
+                socket.send(JSON.stringify({'message': 'start'})); // Send initial message to trigger number generation
+            };
+
+            socket.onclose = function() {
+                console.log("WebSocket connection closed.");
+            };
+        }
+    }
+
+    // Function to reset the marked cards
+    function resetCards() {
+        var cards = document.querySelectorAll(".card");
+        cards.forEach(function(card) {
+            card.classList.remove("marked");
+        });
+        markedNumbers.clear();
+        document.getElementById("app").innerHTML = "Bingo";
+    }
+</script>
+{% endblock %}

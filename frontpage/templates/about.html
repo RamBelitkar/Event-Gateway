@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* Base */
+    header {
+        background-color: #000;
+        border-radius: 5px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        width: 100%; /* Adjust the width as needed */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+    header a {
+        font-size: 1.3rem;
+        text-decoration: none;
+    }
+    body {
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+    h1 {
+        color: hsl(0, 0%, 28%);
+        font-size: 50px;
+        font-weight: bold;
+        font-family: monospace;
+        letter-spacing: 7px;
+        cursor: pointer;
+    }
+    h1 span {
+        transition: 0.5s ease-out;
+    }
+    h1:hover span:nth-child(1) {
+        margin-right: 5px;
+    }
+    h1:hover span:nth-child(1):after {
+        content: "'";
+    }
+    h1:hover span:nth-child(2) {
+        margin-left: 30px;
+    }
+    h1:hover span {
+        color: #fff;
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 40px #fff;
+    }
+    .typewriter-container {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .typewriter-animation {
+        color: #fff;
+        font-size: 24px;
+        font-family: monospace;
+        white-space: nowrap;
+        overflow: hidden;
+        border-right: 3px solid;
+        animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+    }
+    @keyframes typing {
+        from { width: 0; }
+        to { width: 100%; }
+    }
+    @keyframes blink-caret {
+        from, to { border-color: transparent; }
+        50% { border-color: white; }
+    }
+</style>
+
+
+
+<!-- Typewriter text at the top -->
+<div class="typewriter-container">
+    <p class="cursor typewriter-animation">Hello Baccho!Yeh khel ke maje karo</p>
+</div>
+<span></span>
+<!-- Footer section -->
+<footer>
+    <div class="text-data justify-content-space-between">
+        <h1><span>Made </span> By <span> Ram Belitkar </span></h1>
+    </div>
+</footer>
+
+{% endblock %}
